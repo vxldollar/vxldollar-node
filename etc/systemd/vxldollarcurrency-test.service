@@ -1,0 +1,13 @@
+[Unit]
+Description=Vxldollar Test Network Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=vxldollarcurrency
+WorkingDirectory=/var/vxldollarcurrency/VxldollarTest
+ExecStart=/usr/bin/vxldollar_node --daemon --network=test --data_path=/var/vxldollarcurrency/VxldollarTest
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

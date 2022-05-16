@@ -1,0 +1,66 @@
+Name:                   vxldollarcurrency
+Version:                @VERSION@ 
+Release:                @RELEASE@%{?dist}
+Summary:                Vxldollarcurrency Daemon
+License:                BSD-2-Clause
+URL:                    https://vxldollar.org/
+Requires(pre):          /usr/sbin/useradd, /usr/bin/getent
+Requires(postun):       /usr/sbin/userdel
+BuildRequires:          make, libstdc++-static, glibc-devel, glibc-headers
+Source:                 vxldollar-%{version}.tar.gz
+
+%description
+This is vxldollarcurrency daemon.  Vxldollar is a digital currency that is
+peer-to-peer, decentralized, and trustless. This package includes
+the vxldollar daemon, and a service.
+
+%prep
+if [ ! -x "$(which cmake)" ]; then
+	echo "cmake must exist, try:" >&2
+	echo "      scl enable devtoolset-7 'rpmbuild ...'" >&2
+	exit 1
+fi
+if cc --std=c++14 --version 2>&1 >/dev/null | grep '^' >/dev/null; then
+	echo "Unsupported C++ compiler, try:" >&2
+	echo "      scl enable devtoolset-7 'rpmbuild ...'" >&2
+	exit 1
+fi
+if test ! -d /usr/local/boost; then
+	echo "Boost should be in /usr/local/boost" >&2
+	exit 1
+fi
+%autosetup -n vxldollar-%{version}
+
+%build
+cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DBOOST_ROOT=/usr/local/boost .
+make vxldollar_node %{?_smp_mflags}
+make vxldollar_rpc %{?_smp_mflags}
+
+%install
+if [ ! %{buildroot} = "/" ]; then %{__rm} -rf %{buildroot}; fi
+mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}/etc/systemd/system/
+cp vxldollar_node %{buildroot}/usr/bin/vxldollar_node
+cp vxldollar_rpc %{buildroot}/usr/bin/vxldollar_rpc
+cp etc/systemd/vxldollarcurrency.service %{buildroot}/etc/systemd/system/vxldollarcurrency.service
+
+%clean
+if [ ! %{buildroot} = "/" ]; then %{__rm} -rf %{buildroot}; fi
+
+%files
+%defattr(755,root,root)
+%{_bindir}/vxldollar_node
+%{_bindir}/vxldollar_rpc
+%attr(644,root,root) /etc/systemd/system/vxldollarcurrency.service
+
+%pre
+PATH="/usr/bin:/usr/sbin:/bin:/sbin:${PATH}"; export PATH
+mkdir -p /var/vxldollarcurrency/Vxldollar
+getent group vxldollarcurrency >/dev/null || groupadd --system vxldollarcurrency || exit 1
+getent passwd vxldollarcurrency >/dev/null || useradd --system --create-home --home-dir /var/vxldollarcurrency --shell /bin/bash --comment "Vxldollarcurrency Daemon user" --gid vxldollarcurrency vxldollarcurrency || exit 1
+chown -R vxldollarcurrency:vxldollarcurrency /var/vxldollarcurrency
+chmod 700 /var/vxldollarcurrency
+
+%postun
+PATH="/usr/bin:/usr/sbin:/bin:/sbin:${PATH}"; export PATH
+userdel vxldollarcurrency >/dev/null 2>/dev/null || :

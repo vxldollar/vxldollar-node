@@ -1,0 +1,13 @@
+[Unit]
+Description=Vxldollar Live Network Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=vxldollarcurrency
+WorkingDirectory=/var/vxldollarcurrency/Vxldollar
+ExecStart=/usr/bin/vxldollar_node --daemon --data_path=/var/vxldollarcurrency/Vxldollar
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

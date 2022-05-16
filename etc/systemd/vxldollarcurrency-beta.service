@@ -1,0 +1,13 @@
+[Unit]
+Description=Vxldollar Beta Network Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=vxldollarcurrency
+WorkingDirectory=/var/vxldollarcurrency/VxldollarBeta
+ExecStart=/usr/bin/vxldollar_node --daemon --network=beta --data_path=/var/vxldollarcurrency/VxldollarBeta
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

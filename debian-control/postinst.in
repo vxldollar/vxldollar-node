@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set +e
+
+useradd -r vxldollarcurrency
+groupadd -r vxldollarcurrency
+
+mkdir -p /var/vxldollarcurrency/Vxldollar
+mkdir -p /var/vxldollarcurrency/VxldollarBeta
+mkdir -p /var/vxldollarcurrency/VxldollarTest
+chown -R vxldollarcurrency: /var/vxldollarcurrency
+
+systemctl stop ${VXLDOLLAR_SERVICE} 2>/dev/null
+systemctl disable ${VXLDOLLAR_SERVICE} 2>/dev/null
+cp ${CMAKE_INSTALL_PREFIX}/extras/systemd/${VXLDOLLAR_SERVICE} /etc/systemd/system/${VXLDOLLAR_SERVICE}
+systemctl daemon-reload
+systemctl enable ${VXLDOLLAR_SERVICE}
+systemctl start ${VXLDOLLAR_SERVICE}
+sleep 1
+systemctl --no-pager status ${VXLDOLLAR_SERVICE}
+
+set -e
